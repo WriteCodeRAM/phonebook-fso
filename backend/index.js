@@ -18,10 +18,13 @@ const unknownEndpoint = (request, response) => {
 app.use(express.json());
 app.use(requestLogger);
 app.use(morgan('tiny'));
+app.use(express.static('dist'));
 app.use(cors());
+
 const generateID = () => {
   return Math.floor(Math.random() * 999999999);
 };
+
 let phonebook = [
   {
     name: 'Randal Michel',
@@ -101,7 +104,7 @@ app.get('/info', (req, res) => {
 
 app.use(unknownEndpoint);
 
-const PORT = 3001;
+const PORT = process.env.PORT || 3001;
 app.listen(PORT, () => {
   console.log(`running on PORT ${PORT}`);
 });
