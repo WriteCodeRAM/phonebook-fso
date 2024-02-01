@@ -1,6 +1,8 @@
 const express = require('express');
 const morgan = require('morgan');
+require('dotenv').config();
 const cors = require('cors');
+const Entry = require('./models/entry');
 const app = express();
 
 const requestLogger = (request, response, next) => {
@@ -21,42 +23,17 @@ app.use(morgan('tiny'));
 app.use(express.static('dist'));
 app.use(cors());
 
-const generateID = () => {
-  return Math.floor(Math.random() * 999999999);
-};
-
-let phonebook = [
-  {
-    name: 'Randal Michel',
-    number: '786-514',
-    id: 1,
-  },
-  {
-    name: 'Ryan Michel',
-    number: '39-44-5323523',
-    id: 2,
-  },
-  {
-    name: 'Rose Napoleon',
-    number: '12-43-234345',
-    id: 3,
-  },
-  {
-    name: 'Workmond Napoleon',
-    number: '39-23-6423122',
-    id: 4,
-  },
-];
 // GET ALL PEOPLE
 app.get('/api/persons', (req, res) => {
-  res.json(phonebook);
+  Entry.find({}).then((result) => {
+    res.json(result);
+  });
 });
 // CREATE A PERSON
 app.post('/api/persons', (req, res) => {
   const body = req.body;
-  const found = phonebook.find((element) => element.name === req.body.name);
 
-  if (!body.name || !body.number || found) {
+  if (!body.name || !body.number) {
     return found
       ? res.status(400).json({
           error: 'name must be unique',
@@ -66,15 +43,15 @@ app.post('/api/persons', (req, res) => {
         });
   }
 
-  let entry = {
-    name: req.body.name,
-    number: req.body.number,
-    id: generateID(),
-  };
+  const entry = new Entry({
+    name: body.name,
+    number: body.number,
+  });
 
-  phonebook = phonebook.concat(entry);
-
-  res.json(body);
+  entry.save().then((savedNumber) => {
+    console.log('number saved');
+    res.json(savedNumber);
+  });
 });
 
 //GET A SINGLE PERSON
@@ -104,7 +81,7 @@ app.get('/info', (req, res) => {
 
 app.use(unknownEndpoint);
 
-const PORT = process.env.PORT || 3001;
+const PORT = process.env.PORT;
 app.listen(PORT, () => {
   console.log(`running on PORT ${PORT}`);
 });
